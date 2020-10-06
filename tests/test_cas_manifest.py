@@ -7,7 +7,19 @@ import pytest
 
 from cas_manifest.ref import Ref
 from cas_manifest.registry import Registry
-from cas_manifest.dataset import CSVDataset, ZipDataset
+from .dataset import CSVDataset, ZipDataset
+
+
+@pytest.fixture
+def registry(fs_instance):
+    """Shared instance of a Registry using the available dataset
+    sublasses
+
+    :param fs_instance: instance of hashfs.HashFS (supplied via pytest fixture)
+    :type fs_instance: HashFS
+    """
+    dataset_classes = [CSVDataset, ZipDataset]
+    return Registry(fs_instance, dataset_classes)
 
 
 def test_csv_dataset(fs_instance):

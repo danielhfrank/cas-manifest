@@ -6,14 +6,6 @@ from pydantic.dataclasses import dataclass
 from typing import List, Type, TypeVar, Generic
 
 from .registerable import Registerable
-from .dataset import Dataset, CSVDataset, ZipDataset
-from .coco_dataset import COCODataset
-
-DATASET_CLASSES: List[Type['Dataset']] = [
-    ZipDataset,
-    CSVDataset,
-    COCODataset
-]
 
 T = TypeVar('T', bound=Registerable)
 
@@ -42,7 +34,3 @@ class Registry(Generic[T]):
                     raise ValueError(f'Not a recognized class: {class_title} ({known_classes})')
             except KeyError:
                 raise ValueError(f'Not a serialized object: {hash_str}')
-
-    @classmethod
-    def dataset(cls, fs: HashFS):
-        return Registry(fs, DATASET_CLASSES)

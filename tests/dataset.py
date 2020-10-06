@@ -8,8 +8,8 @@ from zipfile import ZipFile
 from hashfs import HashFS
 import pandas as pd
 
-from .ref import Ref
-from .registerable import Registerable
+from cas_manifest.ref import Ref
+from cas_manifest.registerable import Registerable
 
 
 class Dataset(Registerable, ABC):
