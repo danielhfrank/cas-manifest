@@ -13,6 +13,7 @@ hashfs = "^0.7.2"
 pytest = "^5.2"
 flake8 = "^3.8.4"
 pandas = "^1.1.3"
+mypy = "^0.782"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -1,13 +1,14 @@
 import contextlib
 from io import BytesIO, StringIO
 import json
+from typing import List, Type
 import zipfile
 
 import pytest
 
 from cas_manifest.ref import Ref
 from cas_manifest.registry import Registry
-from .dataset import CSVDataset, ZipDataset
+from .dataset import Dataset, CSVDataset, ZipDataset
 
 
 @pytest.fixture
@@ -18,7 +19,7 @@ def registry(fs_instance):
     :param fs_instance: instance of hashfs.HashFS (supplied via pytest fixture)
     :type fs_instance: HashFS
     """
-    dataset_classes = [CSVDataset, ZipDataset]
+    dataset_classes: List[Type['Dataset']] = [CSVDataset, ZipDataset]
     return Registry(fs_instance, dataset_classes)
 
 
