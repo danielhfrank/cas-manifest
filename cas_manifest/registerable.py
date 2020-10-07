@@ -1,5 +1,8 @@
+from abc import ABC, abstractmethod
 from io import StringIO
 import json
+
+from typing import TypeVar, Generic
 
 from hashfs import HashFS, HashAddress
 from pydantic import BaseModel
@@ -20,3 +23,19 @@ class Registerable(BaseModel):
 
         buf = StringIO(json_repr)
         return fs.put(buf)
+
+
+Hydrated = TypeVar('Hydrated')
+Dried = TypeVar('Dried', bound=Registerable)
+
+
+class Serializer(Generic[Hydrated, Dried], BaseModel, ABC):
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    fs: HashFS
+
+    @abstractmethod
+    def serialize(self, obj: Hydrated) -> Dried:
+        pass

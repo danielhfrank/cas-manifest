@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from io import StringIO
 from pathlib import Path
 import shutil
 import tempfile
@@ -9,7 +10,7 @@ from hashfs import HashFS
 import pandas as pd
 
 from cas_manifest.ref import Ref
-from cas_manifest.registerable import Registerable
+from cas_manifest.registerable import Registerable, Serializer
 
 
 class Dataset(Registerable, ABC):
@@ -54,3 +55,13 @@ class ZipDataset(Dataset):
         if self.tmpdir_path and self.tmpdir_path.exists():
             shutil.rmtree(self.tmpdir_path)
         self.tmpdir_path = None
+
+
+class CSVSerializer(Serializer[pd.DataFrame, CSVDataset]):
+
+    def serialize(self, df: pd.DataFrame) -> CSVDataset:
+        buf = StringIO()
+        df.to_csv(buf, header=False, index=False)
+        buf.seek(0)
+        addr = self.fs.put(buf)
+        return CSVDataset(path=Ref(addr.id), column_names=df.columns.tolist())
