@@ -17,3 +17,14 @@ registry = Registry(fs, [CSVDataset, TSVDataset])
 obj = registry.load(dataset_hash)
 # obj is an instance of either CSVDataset or TSVDataset
 ```
+
+## Why CAS?
+
+In short, CAS enforces immutability. When using CAS, a key's contents can never be changed. The following comes naturally:
+* No more `data_final__2_new` files - all objects are uniquely specified
+* No cache invalidation - cache objects freely, knowing that their contents will never change upstream
+* No more provenance questions - models can be robustly linked to the datasets used to train them
+
+## Why manifests?
+
+In a CAS regime, keys are deliberately opaque. By using manifests, artifacts can be _self-descriptive_. It can include instructions for deserialization, links to other artifacts, and any other metadata you can think up. In combination with CAS, you can ensure that your metadata and underlying data never go out of sync, since your metadata will refer to an immutable reference to underlying data.
