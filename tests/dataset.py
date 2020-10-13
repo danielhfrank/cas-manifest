@@ -10,7 +10,7 @@ from hashfs import HashFS
 import pandas as pd
 
 from cas_manifest.ref import Ref
-from cas_manifest.registerable import Registerable, Serializer
+from cas_manifest.registerable import Registerable, Serde
 
 
 class Dataset(Registerable, ABC):
@@ -57,7 +57,7 @@ class ZipDataset(Dataset):
         self.tmpdir_path = None
 
 
-class CSVSerializer(Serializer[pd.DataFrame, CSVDataset]):
+class CSVSerializer(Serde[pd.DataFrame, CSVDataset]):
 
     def serialize(self, df: pd.DataFrame) -> CSVDataset:
         buf = StringIO()
@@ -65,3 +65,6 @@ class CSVSerializer(Serializer[pd.DataFrame, CSVDataset]):
         buf.seek(0)
         addr = self.fs.put(buf)
         return CSVDataset(path=Ref(addr.id), column_names=df.columns.tolist())
+
+    def deserialize(self, dried: CSVDataset) -> pd.DataFrame:
+        return dried.load_from(self.fs)

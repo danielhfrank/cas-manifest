@@ -29,7 +29,7 @@ Hydrated = TypeVar('Hydrated')
 Dried = TypeVar('Dried', bound=Registerable)
 
 
-class Serializer(Generic[Hydrated, Dried], BaseModel, ABC):
+class Serde(Generic[Hydrated, Dried], BaseModel, ABC):
 
     class Config:
         arbitrary_types_allowed = True
@@ -38,4 +38,8 @@ class Serializer(Generic[Hydrated, Dried], BaseModel, ABC):
 
     @abstractmethod
     def serialize(self, obj: Hydrated) -> Dried:
+        pass
+
+    @abstractmethod
+    def deserialize(self, dried: Dried) -> Hydrated:
         pass
