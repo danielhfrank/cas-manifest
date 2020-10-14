@@ -59,7 +59,7 @@ class ZipDataset(Dataset):
         self.tmpdir_path = None
 
 
-class CSVSerializer(Serde[pd.DataFrame, CSVDataset]):
+class CSVSerializer():
 
     def serialize(self, df: pd.DataFrame) -> CSVDataset:
         buf = StringIO()
@@ -77,10 +77,9 @@ class CSVSerializable(Serializable[pd.DataFrame]):
     path: Ref
     column_names: List[str]
 
-    @classmethod
-    def open(cls, obj: CSVSerializable, fs: HashFS) -> pd.DataFrame:
-        addr = fs.get(obj.path.hash_str)
-        return pd.read_csv(addr.abspath, names=obj.column_names)
+    def open(self, fs: HashFS) -> pd.DataFrame:
+        addr = fs.get(self.path.hash_str)
+        return pd.read_csv(addr.abspath, names=self.column_names)
 
     @classmethod
     def save(cls, inst: pd.DataFrame, fs: HashFS) -> CSVSerializable:

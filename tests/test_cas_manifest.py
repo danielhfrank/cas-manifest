@@ -44,6 +44,7 @@ def test_csv_dataset(registry, fs_instance):
     assert df.sepal_length[0] == 5.1
 
 
+@pytest.mark.skip()
 def test_serializer(registry, fs_instance):
     serializer = CSVSerializer(fs=fs_instance)
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})

@@ -36,12 +36,11 @@ S = TypeVar('S', bound='Serializable')
 class Serializable(Generic[Deserialized], Registerable, ABC):
 
     @abstractmethod
-    @classmethod
-    def open(cls: Type[S], obj: S, fs: HashFS) -> Deserialized:
+    def open(self, fs: HashFS) -> Deserialized:
         # requires a Serde[Deserialized, cls]
         pass
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def save(cls: Type[S], inst: Deserialized, fs: HashFS) -> S:
         pass
