@@ -8,8 +8,8 @@ import pandas as pd
 import pytest
 
 from cas_manifest.ref import Ref
-from cas_manifest.registry import Registry
-from .dataset import Dataset, CSVDataset, ZipDataset, CSVSerializer, CSVSerializable
+from cas_manifest.registry import Registry, SerializableRegistry
+from .dataset import Dataset, CSVDataset, ZipDataset,  CSVSerializable
 
 
 @pytest.fixture
@@ -54,6 +54,16 @@ def test_serializable(fs_instance):
     son_of_df = serialized.open(fs_instance)
     pd.testing.assert_frame_equal(df, son_of_df)
 
+    # Now involve a registry in the round-trip. Will make a slimmed-down one here
+    registry: SerializableRegistry[pd.DataFrame] = SerializableRegistry(fs_instance,
+                                                                        [CSVSerializable])
+    # reveal_type(registry)
+    addr = serialized.dump(fs_instance)
+    loaded = registry.load(addr.id)
+    assert(loaded == serialized)
+    opened = registry.open(addr.id)
+    # reveal_type(opened)
+    pd.testing.assert_frame_equal(opened, df)
 
 
 def test_unsupported_objects(registry, fs_instance):

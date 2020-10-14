@@ -5,7 +5,7 @@ from pydantic.dataclasses import dataclass
 
 from typing import List, Type, TypeVar, Generic
 
-from .registerable import Registerable
+from .registerable import Registerable, Serializable
 
 T = TypeVar('T', bound=Registerable)
 
@@ -34,3 +34,14 @@ class Registry(Generic[T]):
                     raise ValueError(f'Not a recognized class: {class_title} ({known_classes})')
             except KeyError:
                 raise ValueError(f'Not a serialized object: {hash_str}')
+
+
+DeserializedBase = TypeVar('DeserializedBase')
+# S = TypeVar('S', bound=Serializable)
+
+
+class SerializableRegistry(Generic[DeserializedBase], Registry[Serializable[DeserializedBase]]):
+
+    def open(self, hash_str: str) -> DeserializedBase:
+        serialized = self.load(hash_str)
+        return serialized.open(self.fs)
