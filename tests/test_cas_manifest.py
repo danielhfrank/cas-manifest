@@ -9,7 +9,7 @@ import pytest
 
 from cas_manifest.ref import Ref
 from cas_manifest.registry import Registry
-from .dataset import Dataset, CSVDataset, ZipDataset, CSVSerializer
+from .dataset import Dataset, CSVDataset, ZipDataset, CSVSerializer, CSVSerializable
 
 
 @pytest.fixture
@@ -42,6 +42,17 @@ def test_csv_dataset(registry, fs_instance):
     df = dataset.load_from(fs_instance)
     # Check expected value in the dataframe
     assert df.sepal_length[0] == 5.1
+
+
+def test_serializable(fs_instance):
+    # Create a dataframe and serialize it
+    df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+    serialized = CSVSerializable.save(df, fs_instance)
+    # sanity-check whether the visible fields look ok
+    assert(serialized.column_names == ['a', 'b'])
+    # deserialize it
+    son_of_df = serialized.open(fs_instance)
+    pd.testing.assert_frame_equal(df, son_of_df)
 
 
 @pytest.mark.skip()

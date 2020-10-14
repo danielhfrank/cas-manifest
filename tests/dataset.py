@@ -87,4 +87,4 @@ class CSVSerializable(Serializable[pd.DataFrame]):
         inst.to_csv(buf, header=False, index=False)
         buf.seek(0)
         addr = fs.put(buf)
-        return CSVDataset(path=Ref(addr.id), column_names=inst.columns.tolist())
+        return CSVSerializable(path=Ref(addr.id), column_names=inst.columns.tolist())
