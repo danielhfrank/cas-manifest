@@ -9,7 +9,8 @@ import pytest
 
 from cas_manifest.ref import Ref
 from cas_manifest.registry import Registry, SerializableRegistry
-from .dataset import Dataset, CSVDataset, ZipDataset, CSVSerde
+from cas_manifest.serde import Serde
+from .dataset import Dataset, CSVDataset, ZipDataset, CSVSerde, PandasDataset
 
 
 @pytest.fixture
@@ -38,8 +39,10 @@ def test_csv_dataset(registry, fs_instance):
     if not isinstance(dataset, CSVDataset):
         raise Exception("just to prove to mypy that it's a CSVDataset")
     assert dataset.column_names == col_names
+    reveal_type(dataset)
     # Load the dataframe referenced by the dataset
     df = dataset.load_from(fs_instance)
+    reveal_type(df)
     # Check expected value in the dataframe
     assert df.sepal_length[0] == 5.1
 
@@ -47,13 +50,18 @@ def test_csv_dataset(registry, fs_instance):
 def test_serializable(fs_instance):
     # Create a dataframe and serialize it
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-    serde =  CSVSerde()
+    serde: Serde[pd.DataFrame, PandasDataset] = CSVSerde()
+    reveal_type(serde)
     serialized = serde.serialize(df, fs_instance)
     # sanity-check whether the visible fields look ok
     assert(serialized.column_names == ['a', 'b'])
     # deserialize it
     son_of_df = serde.deserialize(serialized, fs_instance)
     pd.testing.assert_frame_equal(df, son_of_df)
+
+    sr = SerializableRegistry(fs=fs_instance, classes=[PandasDataset], serde=serde)
+    reveal_type(sr)
+
 
     # Now involve a registry in the round-trip. Will make a slimmed-down one here
     # registry: SerializableRegistry[pd.DataFrame] = SerializableRegistry(fs_instance,

@@ -42,7 +42,9 @@ class CSVDataset(Dataset):
 
     def load_from(self, fs: HashFS) -> pd.DataFrame:
         addr = fs.get(self.path.hash_str)
-        return pd.read_csv(addr.abspath, names=self.column_names)
+        df = pd.read_csv(addr.abspath, names=self.column_names)
+        assert isinstance(df, pd.DataFrame)
+        return df
 
 
 class ZipDataset(Dataset):
@@ -73,7 +75,9 @@ class CSVSerde(Serde[pd.DataFrame, PandasDataset]):
 
     def deserialize(self, dried: PandasDataset, fs: HashFS) -> pd.DataFrame:
         addr = fs.get(dried.path.hash_str)
-        return pd.read_csv(addr.abspath, names=dried.column_names)
+        df = pd.read_csv(addr.abspath, names=dried.column_names)
+        assert isinstance(df, pd.DataFrame)
+        return df
 
     # @classmethod
     def serialize(self, inst: pd.DataFrame, fs: HashFS) -> PandasDataset:
