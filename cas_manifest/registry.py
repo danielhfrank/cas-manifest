@@ -6,7 +6,6 @@ from pydantic.dataclasses import dataclass
 from typing import List, Type, TypeVar, Generic
 
 from .registerable import Registerable, Serializable
-from .serde import Serde
 
 T = TypeVar('T', bound=Registerable)
 
@@ -38,13 +37,9 @@ class Registry(Generic[T]):
 
 
 DeserializedBase = TypeVar('DeserializedBase')
-# S = TypeVar('S', bound=Serializable)
 
 
-@dataclass(config=ArbitraryTypeConfig)
-class SerializableRegistry(Generic[T, DeserializedBase], Registry[T]):
-
-    serde: Serde[T, DeserializedBase]
+class SerializableRegistry(Generic[DeserializedBase], Registry[Serializable[DeserializedBase]]):
 
     def open(self, hash_str: str) -> DeserializedBase:
         serialized = self.load(hash_str)
