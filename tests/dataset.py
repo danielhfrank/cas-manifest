@@ -13,6 +13,16 @@ import pandas as pd
 
 from cas_manifest.ref import Ref
 from cas_manifest.registerable import Registerable, Serializable
+from cas_manifest.serde import Serde
+
+
+class PandasDataset(Registerable):
+    """
+    Another impl of CSVDataset, but agnostic to its serde
+    """
+
+    path: Ref
+    column_names: List[str]
 
 
 class Dataset(Registerable, ABC):
@@ -59,19 +69,16 @@ class ZipDataset(Dataset):
         self.tmpdir_path = None
 
 
-class CSVSerializable(Serializable[pd.DataFrame]):
+class CSVSerde(Serde[pd.DataFrame, PandasDataset]):
 
-    path: Ref
-    column_names: List[str]
+    def deserialize(self, dried: PandasDataset, fs: HashFS) -> pd.DataFrame:
+        addr = fs.get(dried.path.hash_str)
+        return pd.read_csv(addr.abspath, names=dried.column_names)
 
-    def open(self, fs: HashFS) -> pd.DataFrame:
-        addr = fs.get(self.path.hash_str)
-        return pd.read_csv(addr.abspath, names=self.column_names)
-
-    @classmethod
-    def save(cls, inst: pd.DataFrame, fs: HashFS) -> CSVSerializable:
+    # @classmethod
+    def serialize(self, inst: pd.DataFrame, fs: HashFS) -> PandasDataset:
         buf = StringIO()
         inst.to_csv(buf, header=False, index=False)
         buf.seek(0)
         addr = fs.put(buf)
-        return CSVSerializable(path=Ref(addr.id), column_names=inst.columns.tolist())
+        return PandasDataset(path=Ref(addr.id), column_names=inst.columns.tolist())
