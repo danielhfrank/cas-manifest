@@ -59,19 +59,6 @@ class ZipDataset(Dataset):
         self.tmpdir_path = None
 
 
-class CSVSerializer():
-
-    def serialize(self, df: pd.DataFrame) -> CSVDataset:
-        buf = StringIO()
-        df.to_csv(buf, header=False, index=False)
-        buf.seek(0)
-        addr = self.fs.put(buf)
-        return CSVDataset(path=Ref(addr.id), column_names=df.columns.tolist())
-
-    def deserialize(self, dried: CSVDataset) -> pd.DataFrame:
-        return dried.load_from(self.fs)
-
-
 class CSVSerializable(Serializable[pd.DataFrame]):
 
     path: Ref

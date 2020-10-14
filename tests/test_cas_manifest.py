@@ -55,21 +55,6 @@ def test_serializable(fs_instance):
     pd.testing.assert_frame_equal(df, son_of_df)
 
 
-@pytest.mark.skip()
-def test_serializer(registry, fs_instance):
-    serializer = CSVSerializer(fs=fs_instance)
-    df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-    # First create a CSVDataset from the dataframe
-    dataset = serializer.serialize(df)
-    # Check that we got the properties right
-    assert(dataset.column_names == ['a', 'b'])
-    # Now save the dataset (wrapper) to hashfs
-    dataset_hash = dataset.dump(fs_instance)
-    # And now load it back out
-    retrieved = registry.load(dataset_hash.id)
-    retrieved_df = retrieved.load_from(fs_instance)
-    pd.testing.assert_frame_equal(df, retrieved_df)
-
 
 def test_unsupported_objects(registry, fs_instance):
     bad_json = {'asdf': 123}
