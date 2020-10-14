@@ -4,13 +4,11 @@ import json
 from typing import List, Type
 import zipfile
 
-import pandas as pd
 import pytest
 
 from cas_manifest.ref import Ref
-from cas_manifest.registry import Registry, SerializableRegistry
-from cas_manifest.serde import Serde
-from .dataset import Dataset, CSVDataset, ZipDataset, CSVSerde, PandasDataset
+from cas_manifest.registry import Registry
+from .dataset import Dataset, CSVDataset, ZipDataset
 
 
 @pytest.fixture
@@ -32,47 +30,17 @@ def test_csv_dataset(registry, fs_instance):
     # Construct the dataset wrapper around the saved file
     orig_dataset = CSVDataset(path=Ref(csv_addr.id), column_names=col_names)
     # Save the wrapper to the fs
-    addr = orig_dataset.dump(fs_instance)
+    addr = orig_dataset.self_dump(fs_instance)
 
     # Load the dataset
     dataset = registry.load(addr.id)
     if not isinstance(dataset, CSVDataset):
         raise Exception("just to prove to mypy that it's a CSVDataset")
     assert dataset.column_names == col_names
-    reveal_type(dataset)
     # Load the dataframe referenced by the dataset
     df = dataset.load_from(fs_instance)
-    reveal_type(df)
     # Check expected value in the dataframe
     assert df.sepal_length[0] == 5.1
-
-
-def test_serializable(fs_instance):
-    # Create a dataframe and serialize it
-    df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-    serde: Serde[pd.DataFrame, PandasDataset] = CSVSerde()
-    reveal_type(serde)
-    serialized = serde.serialize(df, fs_instance)
-    # sanity-check whether the visible fields look ok
-    assert(serialized.column_names == ['a', 'b'])
-    # deserialize it
-    son_of_df = serde.deserialize(serialized, fs_instance)
-    pd.testing.assert_frame_equal(df, son_of_df)
-
-    sr = SerializableRegistry(fs=fs_instance, classes=[PandasDataset], serde=serde)
-    reveal_type(sr)
-
-
-    # Now involve a registry in the round-trip. Will make a slimmed-down one here
-    # registry: SerializableRegistry[pd.DataFrame] = SerializableRegistry(fs_instance,
-    #                                                                     [CSVSerializable])
-    # # reveal_type(registry)
-    # addr = serialized.dump(fs_instance)
-    # loaded = registry.load(addr.id)
-    # assert(loaded == serialized)
-    # opened = registry.open(addr.id)
-    # # reveal_type(opened)
-    # pd.testing.assert_frame_equal(opened, df)
 
 
 def test_unsupported_objects(registry, fs_instance):
@@ -104,7 +72,7 @@ def test_zip_dataset(registry, fs_instance):
     zip_addr = fs_instance.put(buf)
 
     zd = ZipDataset(path=Ref(zip_addr.id))
-    ds_addr = zd.dump(fs_instance)
+    ds_addr = zd.self_dump(fs_instance)
     with contextlib.closing(registry.load(ds_addr.id)) as dataset:
         assert(isinstance(dataset, ZipDataset))
         tmpdir_path = dataset.load_from(fs_instance)
