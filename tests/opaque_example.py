@@ -20,7 +20,7 @@ class OpaqueSerializable(Serializable[OpaqueObject]):
 
     pickle_ref: Ref
 
-    def open(self, fs: HashFS) -> OpaqueObject:
+    def unpack(self, fs: HashFS) -> OpaqueObject:
         with fs.open(self.pickle_ref.hash_str) as f:
             loaded = pickle.load(f)
             if not isinstance(loaded, OpaqueObject):
@@ -28,7 +28,7 @@ class OpaqueSerializable(Serializable[OpaqueObject]):
             return loaded
 
     @classmethod
-    def save(cls, inst, fs) -> OpaqueSerializable:
+    def pack(cls, inst, fs) -> OpaqueSerializable:
         buf = BytesIO()
         pickle.dump(inst, buf)
         buf.seek(0)

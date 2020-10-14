@@ -17,7 +17,7 @@ class Registerable(BaseModel):
     def exclude_fields(self):
         return set()
 
-    def dump(self, fs: HashFS) -> HashAddress:
+    def self_dump(self, fs: HashFS) -> HashAddress:
         json_repr = json.dumps({
             'class': self.schema()['title'],
             'value': self.dict(exclude=self.exclude_fields)
@@ -28,7 +28,6 @@ class Registerable(BaseModel):
 
 
 Deserialized = TypeVar('Deserialized')
-# Serialized = TypeVar
 
 S = TypeVar('S', bound='Serializable')
 
@@ -36,11 +35,15 @@ S = TypeVar('S', bound='Serializable')
 class Serializable(Generic[Deserialized], Registerable, ABC):
 
     @abstractmethod
-    def open(self, fs: HashFS) -> Deserialized:
-        # requires a Serde[Deserialized, cls]
+    def unpack(self, fs: HashFS) -> Deserialized:
         pass
 
     @classmethod
     @abstractmethod
-    def save(cls: Type[S], inst: Deserialized, fs: HashFS) -> S:
+    def pack(cls: Type[S], inst: Deserialized, fs: HashFS) -> S:
         pass
+
+    @classmethod
+    def dump(cls, inst: Deserialized, fs: HashFS) -> HashAddress:
+        packed = cls.pack(inst, fs)
+        return packed.self_dump(fs)

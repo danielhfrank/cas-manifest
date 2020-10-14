@@ -43,4 +43,4 @@ class SerializableRegistry(Generic[DeserializedBase], Registry[Serializable[Dese
 
     def open(self, hash_str: str) -> DeserializedBase:
         serialized = self.load(hash_str)
-        return serialized.open(self.fs)
+        return serialized.unpack(self.fs)
