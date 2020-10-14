@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from io import StringIO
 import json
 
-from typing import TypeVar, Generic
+from typing import Type, TypeVar, Generic
 
 from hashfs import HashFS, HashAddress
 from pydantic import BaseModel
@@ -25,21 +27,21 @@ class Registerable(BaseModel):
         return fs.put(buf)
 
 
-Hydrated = TypeVar('Hydrated')
-Dried = TypeVar('Dried', bound=Registerable)
+Deserialized = TypeVar('Deserialized')
+# Serialized = TypeVar
+
+S = TypeVar('S', bound='Serializable')
 
 
-class Serde(Generic[Hydrated, Dried], BaseModel, ABC):
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    fs: HashFS
+class Serializable(Generic[Deserialized], Registerable, ABC):
 
     @abstractmethod
-    def serialize(self, obj: Hydrated) -> Dried:
+    @classmethod
+    def open(cls: Type[S], obj: S, fs: HashFS) -> Deserialized:
+        # requires a Serde[Deserialized, cls]
         pass
 
     @abstractmethod
-    def deserialize(self, dried: Dried) -> Hydrated:
+    @classmethod
+    def save(cls: Type[S], inst: Deserialized, fs: HashFS) -> S:
         pass

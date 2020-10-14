@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from io import StringIO
 from pathlib import Path
@@ -10,7 +12,7 @@ from hashfs import HashFS
 import pandas as pd
 
 from cas_manifest.ref import Ref
-from cas_manifest.registerable import Registerable, Serde
+from cas_manifest.registerable import Registerable, Serializable
 
 
 class Dataset(Registerable, ABC):
@@ -68,3 +70,22 @@ class CSVSerializer(Serde[pd.DataFrame, CSVDataset]):
 
     def deserialize(self, dried: CSVDataset) -> pd.DataFrame:
         return dried.load_from(self.fs)
+
+
+class CSVSerializable(Serializable[pd.DataFrame]):
+
+    path: Ref
+    column_names: List[str]
+
+    @classmethod
+    def open(cls, obj: CSVSerializable, fs: HashFS) -> pd.DataFrame:
+        addr = fs.get(obj.path.hash_str)
+        return pd.read_csv(addr.abspath, names=obj.column_names)
+
+    @classmethod
+    def save(cls, inst: pd.DataFrame, fs: HashFS) -> CSVSerializable:
+        buf = StringIO()
+        inst.to_csv(buf, header=False, index=False)
+        buf.seek(0)
+        addr = fs.put(buf)
+        return CSVDataset(path=Ref(addr.id), column_names=inst.columns.tolist())
