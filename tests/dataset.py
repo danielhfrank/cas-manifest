@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 import shutil
@@ -29,7 +31,9 @@ class CSVDataset(Dataset):
 
     def load_from(self, fs: HashFS) -> pd.DataFrame:
         addr = fs.get(self.path.hash_str)
-        return pd.read_csv(addr.abspath, names=self.column_names)
+        df = pd.read_csv(addr.abspath, names=self.column_names)
+        assert isinstance(df, pd.DataFrame)
+        return df
 
 
 class ZipDataset(Dataset):

@@ -30,7 +30,7 @@ def test_csv_dataset(registry, fs_instance):
     # Construct the dataset wrapper around the saved file
     orig_dataset = CSVDataset(path=Ref(csv_addr.id), column_names=col_names)
     # Save the wrapper to the fs
-    addr = orig_dataset.dump(fs_instance)
+    addr = orig_dataset.self_dump(fs_instance)
 
     # Load the dataset
     dataset = registry.load(addr.id)
@@ -72,7 +72,7 @@ def test_zip_dataset(registry, fs_instance):
     zip_addr = fs_instance.put(buf)
 
     zd = ZipDataset(path=Ref(zip_addr.id))
-    ds_addr = zd.dump(fs_instance)
+    ds_addr = zd.self_dump(fs_instance)
     with contextlib.closing(registry.load(ds_addr.id)) as dataset:
         assert(isinstance(dataset, ZipDataset))
         tmpdir_path = dataset.load_from(fs_instance)
