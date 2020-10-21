@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import os
 from pathlib import Path
 import shutil
 import tempfile
@@ -11,7 +12,7 @@ from hashfs import HashFS
 import pandas as pd
 
 from cas_manifest.ref import Ref
-from cas_manifest.registerable import Registerable
+from cas_manifest.registerable import Registerable, Serializable
 
 
 class Dataset(Registerable, ABC):
@@ -58,3 +59,30 @@ class ZipDataset(Dataset):
         if self.tmpdir_path and self.tmpdir_path.exists():
             shutil.rmtree(self.tmpdir_path)
         self.tmpdir_path = None
+
+
+class ZipSerializable(Serializable[Path]):
+
+    path: Ref
+
+    @classmethod
+    def pack(cls, inst: Path, fs: HashFS) -> ZipSerializable:
+        with tempfile.TemporaryFile(mode='rw') as f:
+            zf = ZipFile(f, mode='w')
+            for root, dirs, files in os.walk(inst):
+                for file in files:
+                    zf.write(os.path.join(root, file))
+            zf.close()
+            zip_addr = fs.put(f)
+            return ZipSerializable(path=Ref(zip_addr.id))
+
+    def unpack(self, fs: HashFS) -> Path:
+        addr = fs.get(self.path.hash_str)
+        zf = ZipFile(addr.abspath)
+        tmpdir = tempfile.mkdtemp()
+        zf.extractall(tmpdir)
+        return Path(tmpdir)
+
+    @classmethod
+    def close(cls, inst: Path):
+        shutil.rmtree(inst)
