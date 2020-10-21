@@ -47,3 +47,12 @@ class Serializable(Generic[Deserialized], Registerable, ABC):
     def dump(cls, inst: Deserialized, fs: HashFS) -> HashAddress:
         packed = cls.pack(inst, fs)
         return packed.self_dump(fs)
+
+    @classmethod
+    def close(cls, inst: Deserialized) -> None:
+        """Optionally close resources associated with Deserialized instance.
+
+        :param inst: Whatever is deserialized and used by the application
+        :type inst: Deserialized
+        """
+        pass

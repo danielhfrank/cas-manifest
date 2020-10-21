@@ -1,9 +1,10 @@
+import contextlib
 import json
 
 from hashfs import HashFS
 from pydantic.dataclasses import dataclass
 
-from typing import List, Type, TypeVar, Generic
+from typing import List, Type, TypeVar, Generic, Generator
 
 from .registerable import Registerable, Serializable
 
@@ -41,6 +42,11 @@ DeserializedBase = TypeVar('DeserializedBase')
 
 class SerializableRegistry(Generic[DeserializedBase], Registry[Serializable[DeserializedBase]]):
 
-    def open(self, hash_str: str) -> DeserializedBase:
+    @contextlib.contextmanager
+    def open(self, hash_str: str) -> Generator[DeserializedBase, None, None]:
         serialized = self.load(hash_str)
-        return serialized.unpack(self.fs)
+        deserialized = serialized.unpack(self.fs)
+        try:
+            yield deserialized
+        finally:
+            serialized.close(deserialized)

@@ -9,6 +9,5 @@ def test_serde(fs_instance):
     addr = OpaqueSerializable.dump(obj, fs_instance)
 
     registry = SerializableRegistry(fs=fs_instance, classes=[OpaqueSerializable])
-    # TODO probably want some context manager stuff around this
-    loaded_obj = registry.open(addr.id)
-    assert(obj.a == loaded_obj.a)
+    with registry.open(addr.id) as loaded_obj:
+        assert(obj.a == loaded_obj.a)
