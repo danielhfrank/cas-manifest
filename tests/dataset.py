@@ -67,13 +67,16 @@ class ZipSerializable(Serializable[Path]):
 
     @classmethod
     def pack(cls, inst: Path, fs: HashFS) -> ZipSerializable:
-        with tempfile.TemporaryFile(mode='rw') as f:
-            zf = ZipFile(f, mode='w')
+        with tempfile.TemporaryDirectory() as tmpdir:
+            zip_path = Path(tmpdir) / 'tmp.zip'
+            zf = ZipFile(zip_path, mode='w')
             for root, dirs, files in os.walk(inst):
                 for file in files:
-                    zf.write(os.path.join(root, file))
+                    abs_path = Path(root) / file
+                    rel_path = abs_path.relative_to(inst)
+                    zf.write(abs_path, rel_path)
             zf.close()
-            zip_addr = fs.put(f)
+            zip_addr = fs.put(zip_path)
             return ZipSerializable(path=Ref(zip_addr.id))
 
     def unpack(self, fs: HashFS) -> Path:

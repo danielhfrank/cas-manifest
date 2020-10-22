@@ -63,13 +63,7 @@ def test_unsupported_objects(registry, fs_instance):
         registry.load(addr_2.id)
 
 
-def test_zip_dataset(registry, fs_instance):
-    buf = BytesIO()
-    zf = zipfile.ZipFile(buf, mode='w')
-    zf.writestr('df.txt', 'roolz')
-    zf.close()
-    buf.seek(0)
-    zip_addr = fs_instance.put(buf)
+def test_zip_dataset(zip_addr, registry, fs_instance):
 
     zd = ZipDataset(path=Ref(zip_addr.id))
     ds_addr = zd.self_dump(fs_instance)
