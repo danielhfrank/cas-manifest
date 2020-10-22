@@ -34,7 +34,8 @@ def test_zip_serializable(zip_addr, fs_instance):
         # Now, use ZipSerializable.dump to exercise a different path for saving the zipfile
         zs_addr_2 = ZipSerializable.dump(tmpdir_path, fs_instance)
 
-    # and now extract that again and check that the contents are as expected
+    # And now extract that again and check that the contents are as expected
+    # The hashes will be different due to differences in e.g. metadata of file creation time
     with registry.open(zs_addr_2.id) as tmpdir_path:
         assert_zip_contents(tmpdir_path)
 
