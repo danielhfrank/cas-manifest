@@ -52,19 +52,9 @@ class S3HashFS(HashFS):
         return f'{self.s3_cas_info.prefix}/{"/".join(sharded_path)}{extension_str}'
 
     def _get_key_to_download(self, expected_key) -> Optional[str]:
-        # Try to get info of expected key, without an extension.
-        # If successful, that is the key we'll download
-        try:
-            self.s3_conn.head_object(Bucket=self.s3_cas_info.bucket, Key=expected_key)
-            return expected_key
-        except ClientError as e:
-            if is_key_not_found(e):
-                # look for extensions
-                resp = self.s3_conn.list_objects_v2(Bucket=self.s3_cas_info.bucket,
-                                                    Prefix=expected_key)
-                return get_key_from_response(resp)
-            else:
-                raise
+        resp = self.s3_conn.list_objects_v2(Bucket=self.s3_cas_info.bucket,
+                                            Prefix=expected_key)
+        return get_key_from_response(resp)
 
     def get(self, file) -> Optional[HashAddress]:
         if not super().exists(file):
@@ -79,14 +69,8 @@ class S3HashFS(HashFS):
             key_extension = get_extension(key)
             expected_local_path = Path(super().idpath(file, extension=key_extension))
             expected_local_path.parent.mkdir(exist_ok=True)
-            try:
-                self.s3_conn.download_file(self.s3_cas_info.bucket, key, str(expected_local_path))
-            except ClientError as e:
-                if is_key_not_found(e):
-                    # Key not found, return `None` to conform to HashFS api
-                    return None
-                else:
-                    raise
+
+            self.s3_conn.download_file(self.s3_cas_info.bucket, key, str(expected_local_path))
         return super().get(file)
 
     def open(self, file, mode='rb') -> Union[StringIO, BytesIO]:
