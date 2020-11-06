@@ -61,3 +61,16 @@ def test_empty_s3_hashfs(fs):
     # Next show that `open` will return an IOError
     with pytest.raises(IOError):
         fs.open('asdfasd')
+
+
+def test_extensions(fs):
+    # Behavior should be that when we `put` a file with an extension, subsequent `get`
+    # requests will yield a HashAddress with the same extension.
+    contents = "DFDFDF"
+    buf = StringIO(contents)
+    buf.seek(0)
+    put_addr = fs.put(buf, extension='.txt')
+    # Remove from local cache to ensure that we send lookup to s3
+    Path(put_addr.abspath).unlink()
+    get_addr = fs.get(put_addr.id)
+    assert(put_addr.abspath == get_addr.abspath)
