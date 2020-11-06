@@ -64,6 +64,8 @@ def test_empty_s3_hashfs(fs):
 
 
 def test_extensions(fs):
+    # Behavior should be that when we `put` a file with an extension, subsequent `get`
+    # requests will yield a HashAddress with the same extension.
     contents = "DFDFDF"
     buf = StringIO(contents)
     buf.seek(0)
