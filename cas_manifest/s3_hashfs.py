@@ -68,7 +68,7 @@ class S3HashFS(HashFS):
 
             key_extension = get_extension(key)
             expected_local_path = Path(super().idpath(file, extension=key_extension))
-            expected_local_path.parent.mkdir(exist_ok=True)
+            expected_local_path.parent.mkdir(parents=True, exist_ok=True)
 
             self.s3_conn.download_file(self.s3_cas_info.bucket, key, str(expected_local_path))
         return super().get(file)

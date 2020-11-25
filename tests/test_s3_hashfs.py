@@ -74,3 +74,18 @@ def test_extensions(fs):
     Path(put_addr.abspath).unlink()
     get_addr = fs.get(put_addr.id)
     assert(put_addr.abspath == get_addr.abspath)
+
+
+def test_subdirs(fs, s3_conn):
+    contents = "DFDFDF"
+    buf = StringIO(contents)
+    buf.seek(0)
+    addr = fs.put(buf)
+    retrieved = fs.open(addr.id, mode='r').read()
+    assert(retrieved == contents)
+    with tempfile.TemporaryDirectory() as tmpdir2:
+        # Create another fs instance with a different local dir, confirm we can read
+        # the remote path
+        fs2 = S3HashFS(Path(tmpdir2) / 'my_subdir', s3_conn, fs.s3_cas_info)
+        retrieved2 = fs2.open(addr.id, mode='r').read()
+        assert(retrieved2 == contents)
