@@ -38,6 +38,16 @@ def get_extension(s3_key: str) -> Optional[str]:
         return match.groups()[0]
 
 
+def normalize_extension(extension: Optional[str]) -> str:
+    if extension is None:
+        return ''
+    else:
+        if extension.startswith('.'):
+            return extension
+        else:
+            return f'.{extension}'
+
+
 class S3HashFS(HashFS):
 
     def __init__(self, local_path: Path, s3_conn: BaseClient, s3_cas_info: S3CasInfo):
@@ -48,7 +58,7 @@ class S3HashFS(HashFS):
 
     def _make_s3_path(self, hash_str: str, extension: str = None) -> str:
         sharded_path = super().shard(hash_str)
-        extension_str = extension if extension is not None else ''
+        extension_str = normalize_extension(extension)
         return f'{self.s3_cas_info.prefix}/{"/".join(sharded_path)}{extension_str}'
 
     def _get_key_to_download(self, expected_key) -> Optional[str]:

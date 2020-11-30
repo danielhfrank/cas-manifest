@@ -7,7 +7,7 @@ import boto3
 from moto import mock_s3
 import pytest
 
-from cas_manifest.s3_hashfs import S3HashFS, S3CasInfo
+from cas_manifest.s3_hashfs import S3HashFS, S3CasInfo, get_extension
 
 BUCKET = 'facet-models-test'
 
@@ -63,13 +63,15 @@ def test_empty_s3_hashfs(fs):
         fs.open('asdfasd')
 
 
-def test_extensions(fs):
+@pytest.mark.parametrize("extension", ('.txt', 'txt'))
+def test_extensions(fs, extension):
     # Behavior should be that when we `put` a file with an extension, subsequent `get`
     # requests will yield a HashAddress with the same extension.
+    # The test parametrization checks for cases where the user does and does not supply a leading .
     contents = "DFDFDF"
     buf = StringIO(contents)
     buf.seek(0)
-    put_addr = fs.put(buf, extension='.txt')
+    put_addr = fs.put(buf, extension=extension)
     # Remove from local cache to ensure that we send lookup to s3
     Path(put_addr.abspath).unlink()
     get_addr = fs.get(put_addr.id)
