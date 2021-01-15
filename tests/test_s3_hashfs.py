@@ -1,5 +1,6 @@
 from io import StringIO
 import os
+from mock import patch
 from pathlib import Path
 import tempfile
 
@@ -76,6 +77,19 @@ def test_extensions(fs, extension):
     Path(put_addr.abspath).unlink()
     get_addr = fs.get(put_addr.id)
     assert(put_addr.abspath == get_addr.abspath)
+
+
+def test_no_double_upload(fs):
+    contents = "DFDFDF"
+    buf = StringIO(contents)
+    buf.seek(0)
+    fs.put(buf)
+
+    # Now, try putting the same object, and ensure that we don't upload again
+    with patch.object(fs.s3_conn, 'upload_file') as mock_upload:
+        buf.seek(0)
+        fs.put(buf)
+        mock_upload.assert_not_called()
 
 
 def test_subdirs(fs, s3_conn):

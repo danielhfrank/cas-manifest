@@ -66,6 +66,18 @@ class S3HashFS(HashFS):
                                             Prefix=expected_key)
         return get_key_from_response(resp)
 
+    def _check_remote_key_exists(self, key) -> bool:
+        try:
+            self.s3_conn.head_object(Bucket=self.s3_cas_info.bucket, Key=key)
+        except ClientError as client_error:
+            # Check to see if this was a 404
+            if client_error.response.get('Error', {}).get('Code') == '404':
+                # Yes, the string '404'
+                return False
+            else:
+                raise
+        return True
+
     def get(self, file) -> Optional[HashAddress]:
         if not super().exists(file):
             # Get the object from s3
@@ -96,5 +108,8 @@ class S3HashFS(HashFS):
         hash_addr = super().put(file, extension=extension)
         s3_key = self._make_s3_path(hash_addr.id, extension=extension)
         local_path = super().realpath(hash_addr.id)
-        self.s3_conn.upload_file(local_path, self.s3_cas_info.bucket, s3_key)
+        # Now, see if the remote store has the object
+        if not self._check_remote_key_exists(s3_key):
+            # and if not, upload it
+            self.s3_conn.upload_file(local_path, self.s3_cas_info.bucket, s3_key)
         return hash_addr
