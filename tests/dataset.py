@@ -37,6 +37,26 @@ class CSVDataset(Dataset):
         return df
 
 
+class CSVSerializable(Serializable[pd.DataFrame]):
+
+    path: Ref
+    column_names: List[str]
+
+    @classmethod
+    def pack(cls, inst: pd.DataFrame, fs: HashFS) -> CSVSerializable:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir) / 'tmp.csv'
+            with open(tmp_path, mode='w') as f:
+                inst.to_csv(f, header=False, index=False)
+            csv_addr = fs.put(tmp_path)
+            return CSVSerializable(path=Ref(csv_addr.id), column_names=inst.columns.to_list())
+
+    def unpack(self, fs: HashFS) -> pd.DataFrame:
+        addr = fs.get(self.path.hash_str)
+        df = pd.read_csv(addr.abspath, names=self.column_names)
+        return df
+
+
 class ZipDataset(Dataset):
 
     path: Ref
