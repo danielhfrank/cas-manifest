@@ -59,3 +59,19 @@ def test_csv_serializable(fs_instance):
     # And we can get the original object back
     df_2 = serialized.unpack(fs_instance)
     pd.testing.assert_frame_equal(df, df_2)
+
+
+def test_pd_registry(fs_instance):
+    df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+    # Another way to do it - "dump" the structure and its serialized form all to hashfs,
+    # getting back just a hash string to reference it:
+    addr = CSVSerializable.dump(df, fs_instance)
+    # Now we can get this back using a Registry - we need this to know what classes to expect
+    registry: SerializableRegistry[pd.DataFrame] = \
+        SerializableRegistry(fs=fs_instance, classes=[CSVSerializable])
+    # We can get the serialized form
+    serialized = registry.load(addr.id)
+    assert serialized.column_names == ['a', 'b']
+    # Or we can load up the whole thing in one line
+    with registry.open(addr.id) as df_2:
+        pd.testing.assert_frame_equal(df, df_2)
