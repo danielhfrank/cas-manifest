@@ -9,6 +9,7 @@ from typing import List, Optional
 from zipfile import ZipFile
 
 from hashfs import HashFS
+import numpy as np
 import pandas as pd
 
 from cas_manifest.ref import Ref
@@ -55,6 +56,25 @@ class CSVSerializable(Serializable[pd.DataFrame]):
         addr = fs.get(self.path.hash_str)
         df = pd.read_csv(addr.abspath, names=self.column_names)
         return df
+
+
+class NPYSerializable(Serializable[pd.DataFrame]):
+
+    path: Ref
+    column_names: List[str]
+
+    @classmethod
+    def pack(cls, inst: pd.DataFrame, fs: HashFS) -> NPYSerializable:
+        with tempfile.TemporaryFile() as f:
+            np.save(f, inst.values)
+            f.seek(0)
+            addr = fs.put(f)
+        return NPYSerializable(path=Ref(addr.id), column_names=inst.columns.to_list())
+
+    def unpack(self, fs: HashFS) -> pd.DataFrame:
+        addr = fs.get(self.path.hash_str)
+        arr = np.load(addr.abspath)
+        return pd.DataFrame(arr, columns=self.column_names)
 
 
 class ZipDataset(Dataset):

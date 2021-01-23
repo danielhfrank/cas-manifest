@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .dataset import ZipSerializable, CSVSerializable
+from .dataset import ZipSerializable, CSVSerializable, NPYSerializable
 from .opaque_example import OpaqueObject, OpaqueSerializable
 
 import pandas as pd
@@ -75,3 +75,13 @@ def test_pd_registry(fs_instance):
     # Or we can load up the whole thing in one line
     with registry.open(addr.id) as df_2:
         pd.testing.assert_frame_equal(df, df_2)
+
+    # Try another serialization format
+    npy_addr = NPYSerializable.dump(df, fs_instance)
+    # Create a new registry that will accept either serialization format
+    registry_2: SerializableRegistry[pd.DataFrame] = \
+        SerializableRegistry(fs=fs_instance, classes=[
+                             CSVSerializable, NPYSerializable])
+    # load the model
+    with registry_2.open(npy_addr.id) as npy_df:
+        pd.testing.assert_frame_equal(df, npy_df)
