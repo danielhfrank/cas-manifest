@@ -28,7 +28,7 @@ def test_csv_dataset(registry, fs_instance):
     csv_addr = fs_instance.put('tests/assets/iris.csv')
     col_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'label']
     # Construct the dataset wrapper around the saved file
-    orig_dataset = CSVDataset(path=Ref(csv_addr.id), column_names=col_names)
+    orig_dataset = CSVDataset(path=Ref(csv_addr), column_names=col_names)
     # Save the wrapper to the fs
     addr = orig_dataset.self_dump(fs_instance)
 
@@ -65,7 +65,7 @@ def test_unsupported_objects(registry, fs_instance):
 
 def test_zip_dataset(zip_addr, registry, fs_instance):
 
-    zd = ZipDataset(path=Ref(zip_addr.id))
+    zd = ZipDataset(path=Ref(zip_addr))
     ds_addr = zd.self_dump(fs_instance)
     with contextlib.closing(registry.load(ds_addr.id)) as dataset:
         assert(isinstance(dataset, ZipDataset))

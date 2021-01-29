@@ -50,7 +50,7 @@ class CSVSerializable(Serializable[pd.DataFrame]):
             with open(tmp_path, mode='w') as f:
                 inst.to_csv(f, header=False, index=False)
             csv_addr = fs.put(tmp_path)
-            return CSVSerializable(path=Ref(csv_addr.id), column_names=inst.columns.to_list())
+            return CSVSerializable(path=Ref(csv_addr), column_names=inst.columns.to_list())
 
     def unpack(self, fs: HashFS) -> pd.DataFrame:
         addr = fs.get(self.path.hash_str)
@@ -117,7 +117,7 @@ class ZipSerializable(Serializable[Path]):
                     zf.write(abs_path, rel_path)
             zf.close()
             zip_addr = fs.put(zip_path)
-            return ZipSerializable(path=Ref(zip_addr.id))
+            return ZipSerializable(path=Ref(zip_addr))
 
     def unpack(self, fs: HashFS) -> Path:
         addr = fs.get(self.path.hash_str)

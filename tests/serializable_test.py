@@ -24,7 +24,7 @@ def test_serde(fs_instance):
 def test_zip_serializable(zip_addr, fs_instance):
     # First, take a pre-built zipfile (from contents in memory) and save to the fs
     # See conftest.py for construction of zip_addr
-    zs = ZipSerializable(path=Ref(zip_addr.id))
+    zs = ZipSerializable(path=Ref(zip_addr))
     zs_addr = zs.self_dump(fs_instance)
 
     registry: SerializableRegistry[Path] = \
