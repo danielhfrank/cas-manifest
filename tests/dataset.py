@@ -40,8 +40,8 @@ class CSVDataset(Dataset):
 
 class CSVSerializable(Serializable[pd.DataFrame]):
 
-    path: Ref
     column_names: List[str]
+    path: Ref
 
     @classmethod
     def pack(cls, inst: pd.DataFrame, fs: HashFS) -> CSVSerializable:
@@ -60,8 +60,8 @@ class CSVSerializable(Serializable[pd.DataFrame]):
 
 class NPYSerializable(Serializable[pd.DataFrame]):
 
-    path: Ref
     column_names: List[str]
+    path: Ref
 
     @classmethod
     def pack(cls, inst: pd.DataFrame, fs: HashFS) -> NPYSerializable:
