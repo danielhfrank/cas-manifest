@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cas-manifest"
-version = "0.4.0"
-description = "cas-manifest allows developers to store artifacts in a _content-addressable_ store using a self-describing _manifest_"
+version = "0.4.1"
+description = "cas-manifest allows developers to store artifacts in a content-addressable store using a self-describing manifest"
 authors = ["Dan Frank"]
 license = "MIT"
 homepage = "https://github.com/danielhfrank/cas-manifest"
